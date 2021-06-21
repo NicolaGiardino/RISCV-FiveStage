@@ -18,9 +18,14 @@ class InstructionDecode extends MultiIOModule {
 
   val io = IO(
     new Bundle {
-      /**
-        * TODO: Your code here.
-        */
+      val instruction     = Input(new Instruction)
+      val WBDat           = Input(UInt(32.W))
+      val writeEnable     = Input(Bool())
+      val rd              = Input(UInt(5.W))
+      val controlSignals  = Output((new Decoder).io)
+      val regA            = Output(UInt(32.W))
+      val regB            = Output(UInt(32.W))
+      val imm             = Output(UInt(32.W))
     }
   )
 
@@ -39,11 +44,17 @@ class InstructionDecode extends MultiIOModule {
   /**
     * TODO: Your code here.
     */
-  registers.io.readAddress1 := 0.U
-  registers.io.readAddress2 := 0.U
-  registers.io.writeEnable  := false.B
-  registers.io.writeAddress := 0.U
-  registers.io.writeData    := 0.U
+  registers.io.readAddress1 := io.instruction.registerRs1
+  registers.io.readAddress2 := io.instruction.registerRs2
+  registers.io.writeEnable  := io.writeEnable
+  registers.io.writeAddress := io.rd
+  registers.io.writeData    := io.WBDat
 
-  decoder.instruction := 0.U.asTypeOf(new Instruction)
+  decoder.instruction       := io.instruction.asTypeOf(new Instruction)
+
+  io.controlSignals         := decoder
+  io.regA                   := registers.io.readData1
+  io.regB                   := registers.io.readData2
+  io.imm                    := io.instruction.imm(decoder.immType)
+
 }

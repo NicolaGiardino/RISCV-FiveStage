@@ -23,7 +23,10 @@ class InstructionFetch extends MultiIOModule {
     */
   val io = IO(
     new Bundle {
-      val PC = Output(UInt())
+      val PC_jump = Input(UInt(32.W))
+      val JorB    = Input(UInt(1.W))
+      val PC = Output(UInt(32.W))
+      val instruction = Output(new Instruction)
     })
 
   val IMEM = Module(new IMEM)
@@ -42,14 +45,20 @@ class InstructionFetch extends MultiIOModule {
     * 
     * You should expand on or rewrite the code below.
     */
-  io.PC := PC
+  when(io.JorB === 1){
+    io.PC := PC_jump
+  }.otherwise{
+    io.PC := PC
+  }
+  
   IMEM.io.instructionAddress := PC
 
-  // PC := PC + 4.U
+  PC := PC + 4.U
+  
 
   val instruction = Wire(new Instruction)
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)
-
+  io.instruction := instruction
 
   /**
     * Setup. You should not change this code.
