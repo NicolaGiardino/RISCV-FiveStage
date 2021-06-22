@@ -54,8 +54,8 @@ class CPU extends MultiIOModule {
   /**
     TODO: Your code here
     */
-  IF.io.PC_jump               := MEMBarrier.PC_out
-  IF.io.JorB                  := MEMBarrier.controlSignals.controlSignals.branch || MEMBarrier.io.controlSignals.controlSignals.jump
+  IF.io.PC_jump               := EXBarrier.PC_out
+  IF.io.JorB                  := EXBarrier.controlSignals.controlSignals.branch || EXBarrier.io.controlSignals.controlSignals.jump
   IFBarrier.instruction_in    := IF.io.instruction
   IFBarrier.PC_in             := IF.io.PC
 
@@ -67,6 +67,35 @@ class CPU extends MultiIOModule {
   IDBarrier.regB_in           := ID.io.regB
   IDBarrier.controlSignals_in := ID.controlSignals
 
-  
+  EX.io.PC                    := IDBarrier.PC_out
+  EX.io.imm                   := IDBarrier.imm_out
+  EX.io.regA                  := IDBarrier.regA_out
+  EX.io.regB                  := IDBarrier.regB_out
+  EX.io.controlSignals        := IDBarrier.controlSignals_out
+  EX.io.regA                  := IDBarrier.regA_out
+  EXBarrier.PC_in             := EX.io.PC_next
+  when(EXBarrier.controlSignals_out.controlSignals.op2Select == Op2Select.regB){
+    EXBarrier.regB_in         := IDBarrier.regB_out
+  }.elsewhen{
+    EXBarrier.regB_in         := IDBarrier.imm_out
+  }.otherwise{
+    EXBarrier.regB_in         := 0.U
+  }
+  EXBarrier.controlSignals_in := IDBarrier.controlSignals_out
+  EXBarrier.ALUOut_in         := EX.io.ALUOut
+  EXBarrier.instruction_in    := IDBarrier.instruction_out
+
+  MEM.io.writeEnable            := EXBarrier.controlSignals_out.controlSignals.memWrite
+  MEM.io.readEnable             := EXBarrier.controlSignals_out.controlSignals.memRead
+  MEM.io.dataAddress            := EXBarrier.ALUOut_out
+  MEM.io.dataIn                 := EXBarrier.regB_out
+  MEMBarrier.controlSignals_in  := EXBarrier.controlSignals_out
+  MEMBarrier.ALUOut_in          := EXBarrier.ALUOut_out
+  MEMBarrier.readData_in        := MEM.io.readData
+  MEMBarrier.instruction_in     := EXBarrier.instruction_out
+
+  ID.io.WBDat                   := MEMBarrier.ALUOut_out
+  ID.io.writeEnable             := MEMBarrier.controlSignals_out.controlSignals.regWrite
+  ID.io.rd                      := MEMBarrier.instruction_out.registerRd
 
 }

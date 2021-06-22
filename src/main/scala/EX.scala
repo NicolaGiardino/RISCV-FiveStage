@@ -4,11 +4,10 @@ import chisel3.util.{ BitPat, MuxCase }
 import chisel3.experimental.MultiIOModule
 
 
-class Execute extends MultiIOModule {
+class EX extends MultiIOModule {
 
     val io = IO(new Bundle {
         val PC              = Input(UInt(32.W))
-        val instruction     = Input(UInt(32.W))
         val imm             = Input(UInt(32.W))
         val regA            = Input(UInt(32.W))
         val regB            = Input(UInt(32.W))
